@@ -1,4 +1,19 @@
-# Planetiler OpenMapTiles Profile
+# Planetiler OpenMapTiles + cycling infra
+
+### About the fork
+
+This fork contains extra layers on top of the standard OpenMapTiles layers for extracting cycling infrastructure information, such as:
+
+- cycleways
+- cycle lanes, shared lanes
+- cycle networks elements without infrastructure
+- relevant POIs for cycling
+
+The custom layers are in the `addons` package.
+
+Below is the original readme of the `planetiler-openmaptiles` project.
+
+---
 
 This OpenMapTiles profile for [Planetiler](https://github.com/onthegomap/planetiler) is based
 on [OpenMapTiles](https://github.com/openmaptiles/openmaptiles).
