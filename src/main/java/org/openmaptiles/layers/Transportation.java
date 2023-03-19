@@ -174,6 +174,7 @@ public class Transportation implements
       entry(FieldValues.CLASS_RACEWAY, 12),
       entry(FieldValues.CLASS_TERTIARY, 11),
       entry(FieldValues.CLASS_BUSWAY, 11),
+      entry(FieldValues.CLASS_BUS_GUIDEWAY, 11),
       entry(FieldValues.CLASS_SECONDARY, 9),
       entry(FieldValues.CLASS_PRIMARY, 7),
       entry(FieldValues.CLASS_TRUNK, 5),
@@ -526,7 +527,7 @@ public class Transportation implements
     int onewayId = 1;
     for (var item : items) {
       var oneway = item.attrs().get(Fields.ONEWAY);
-      if (oneway instanceof Integer i && ONEWAY_VALUES.contains(i)) {
+      if (oneway instanceof Number n && ONEWAY_VALUES.contains(n.intValue())) {
         item.attrs().put(LIMIT_MERGE_TAG, onewayId++);
       }
     }

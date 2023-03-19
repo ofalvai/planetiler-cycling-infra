@@ -34,8 +34,11 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 /**
  * Generates code in the {@code generated} package from the OpenMapTiles schema crawled from a tag or branch in the
@@ -98,10 +101,12 @@ public class Generate {
   private static final HtmlRenderer renderer = HtmlRenderer.builder().build();
 
   static {
+    var loadOptions = new LoaderOptions();
     // bump the default limit of 50
-    var options = new LoaderOptions();
-    options.setMaxAliasesForCollections(1_000);
-    yaml = new Yaml(options);
+    loadOptions.setMaxAliasesForCollections(1_000);
+    var dumpOptions = new DumperOptions();
+    // SafeConstructor restricts types which can be instantiated during deserialization (CVE-2022-1471)
+    yaml = new Yaml(new SafeConstructor(loadOptions), new Representer(dumpOptions), dumpOptions, loadOptions);
   }
 
   private static <T> T loadAndParseYaml(String url, PlanetilerConfig config, Class<T> clazz) throws IOException {
@@ -128,7 +133,7 @@ public class Generate {
   public static void main(String[] args) throws IOException {
     Arguments arguments = Arguments.fromArgsOrConfigFile(args);
     PlanetilerConfig planetilerConfig = PlanetilerConfig.from(arguments);
-    String tag = arguments.getString("tag", "openmaptiles tag to use", "v3.13.1");
+    String tag = arguments.getString("tag", "openmaptiles tag to use", "v3.14.0");
     String baseUrl = arguments.getString("base-url", "the url used to download the openmaptiles.yml",
       "https://raw.githubusercontent.com/openmaptiles/openmaptiles/");
     String base = baseUrl + tag + "/";
@@ -269,7 +274,7 @@ public class Generate {
            */
           """.stripTrailing().formatted(javadocDescription,
           valuesForComment.stream().map(v -> "<li>" + v).collect(joining(LINE_SEPARATOR + " * "))),
-        name.toUpperCase(Locale.ROOT),
+        name.toUpperCase(Locale.ROOT).replace(":", "__"),
         Format.quote(name)
       ).indent(4));
 
@@ -280,12 +285,14 @@ public class Generate {
       if (values.size() > 0) {
         fieldValues.append(values.stream()
           .map(v -> "public static final String %s = %s;"
-            .formatted(name.toUpperCase(Locale.ROOT) + "_" + v.toUpperCase(Locale.ROOT).replace('-', '_'),
+            .formatted(
+              name.toUpperCase(Locale.ROOT).replace(":", "__") + "_" +
+                v.toUpperCase(Locale.ROOT).replace('-', '_').replace(":", "__"),
               Format.quote(v)))
           .collect(joining(LINE_SEPARATOR)).indent(2).strip()
           .indent(4));
         fieldValues.append("public static final Set<String> %s = Set.of(%s);".formatted(
-          name.toUpperCase(Locale.ROOT) + "_VALUES",
+          name.toUpperCase(Locale.ROOT).replace(":", "__") + "_VALUES",
           values.stream().map(Format::quote).collect(joining(", "))
         ).indent(4));
       }
@@ -416,26 +423,26 @@ public class Generate {
     for (var entry : tables.entrySet()) {
       String key = entry.getKey();
       Imposm3Table table = entry.getValue();
-      List<OsmTableField> fields = parseTableFields(table);
-      for (var field : fields) {
-        String existing = fieldNameToType.get(field.name);
-        if (existing == null) {
-          fieldNameToType.put(field.name, field.clazz);
-        } else if (!existing.equals(field.clazz)) {
-          throw new IllegalArgumentException(
-            "Field " + field.name + " has both " + existing + " and " + field.clazz + " types");
-        }
-      }
-      Expression mappingExpression = parseImposm3MappingExpression(table);
-      String mapping = """
-        /** Imposm3 "mapping" to filter OSM elements that should appear in this "table". */
-        public static final Expression MAPPING = %s;
-        """.formatted(
-        mappingExpression.generateJavaCode()
-      );
-      String tableName = "osm_" + key;
-      String className = lowerUnderscoreToUpperCamel(tableName);
       if (!"relation_member".equals(table.type)) {
+        List<OsmTableField> fields = parseTableFields(table);
+        for (var field : fields) {
+          String existing = fieldNameToType.get(field.name);
+          if (existing == null) {
+            fieldNameToType.put(field.name, field.clazz);
+          } else if (!existing.equals(field.clazz)) {
+            throw new IllegalArgumentException(
+              "Field " + field.name + " has both " + existing + " and " + field.clazz + " types");
+          }
+        }
+        Expression mappingExpression = parseImposm3MappingExpression(table);
+        String mapping = """
+          /** Imposm3 "mapping" to filter OSM elements that should appear in this "table". */
+          public static final Expression MAPPING = %s;
+          """.formatted(
+          mappingExpression.generateJavaCode()
+        );
+        String tableName = "osm_" + key;
+        String className = lowerUnderscoreToUpperCamel(tableName);
         classNames.add(className);
 
         tablesClass.append("""
@@ -657,11 +664,11 @@ public class Generate {
   }
 
   private static String lowerUnderscoreToLowerCamel(String name) {
-    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
+    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name.replace(":", "__"));
   }
 
   private static String lowerUnderscoreToUpperCamel(String name) {
-    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name);
+    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name.replace(":", "__"));
   }
 
   private static <T> List<T> iterToList(Iterator<T> iter) {

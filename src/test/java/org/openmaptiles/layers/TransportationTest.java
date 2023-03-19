@@ -724,6 +724,29 @@ class TransportationTest extends AbstractLayerTest {
     ))));
   }
 
+  @Test
+  void testBusGuideway() {
+    assertFeatures(13, List.of(Map.of(
+      "_layer", "transportation",
+      "class", "bus_guideway",
+      "brunnel", "tunnel",
+      "_minzoom", 11
+    ), Map.of(
+      "_layer", "transportation_name",
+      "class", "bus_guideway",
+      "name", "Silver Line",
+      "_minzoom", 12
+    )), process(lineFeature(Map.of(
+      "access", "no",
+      "bus", "yes",
+      "highway", "bus_guideway",
+      "layer", "-1",
+      "name", "Silver Line",
+      "trolley_wire", "yes",
+      "tunnel", "yes"
+    ))));
+  }
+
   final OsmElement.Relation relUS = new OsmElement.Relation(1);
 
   {
@@ -961,6 +984,15 @@ class TransportationTest extends AbstractLayerTest {
     testMergesLinestrings(Map.of("class", "motorway"), layer, 10, 14);
     testDoesNotMergeLinestrings(Map.of("class", "motorway", "oneway", 1), layer, 10, 14);
     testDoesNotMergeLinestrings(Map.of("class", "motorway", "oneway", -1), layer, 10, 14);
+  }
+
+  @Test
+  void testMergesDisconnectedRoadFeaturesUnlessOnewayLong() throws GeometryException {
+    String layer = Transportation.LAYER_NAME;
+    testMergesLinestrings(Map.of("class", "motorway", "oneway", 0L), layer, 10, 14);
+    testMergesLinestrings(Map.of("class", "motorway"), layer, 10, 14);
+    testDoesNotMergeLinestrings(Map.of("class", "motorway", "oneway", 1L), layer, 10, 14);
+    testDoesNotMergeLinestrings(Map.of("class", "motorway", "oneway", -1L), layer, 10, 14);
   }
 
   @Test

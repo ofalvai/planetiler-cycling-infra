@@ -76,7 +76,7 @@ class OpenMapTilesTest {
 
   @Test
   void testMetadata() {
-    Map<String, String> metadata = mbtiles.metadata().getAll();
+    Map<String, String> metadata = mbtiles.metadataTable().getAll();
     assertEquals("OpenMapTiles", metadata.get("name"));
     assertEquals("0", metadata.get("minzoom"));
     assertEquals("14", metadata.get("maxzoom"));
@@ -200,7 +200,7 @@ class OpenMapTilesTest {
     ), 14, 909, LineString.class);
     assertNumFeatures("transportation", Map.of(
       "class", "primary"
-    ), 14, 170, LineString.class);
+    ), 14, 259, LineString.class);
   }
 
   @Test
