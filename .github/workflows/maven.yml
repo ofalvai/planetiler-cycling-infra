@@ -16,11 +16,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout this PR planetiler-openmaptiles repo
-        uses: actions/checkout@v3
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
           cache: 'maven'
       - name: Ensure code formatted with mvn spotless:apply
@@ -33,19 +33,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        jdk: [ 17 ]
-        include:
-          - os: ubuntu-latest
-            jdk: 18
-          - os: ubuntu-latest
-            jdk: 19
+        jdk: [ 21 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - name: Checkout this PR planetiler-openmaptiles repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.jdk }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.jdk }}
           distribution: 'temurin'
@@ -65,11 +60,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout this PR planetiler-openmaptiles repo
-        uses: actions/checkout@v3
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
           cache: 'maven'
       - run: ./scripts/regenerate-openmaptiles.sh
@@ -82,19 +77,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout this PR planetiler-openmaptiles repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache data/sources
         uses: ./.github/cache-sources-action
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
           cache: 'maven'
       - name: Build this branch
         run: ./mvnw -DskipTests -Dimage.version=CI_ONLY --batch-mode -no-transfer-progress package jib:dockerBuild --file pom.xml
       - name: 'Upload artifact'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: planetiler-build
           path: target/*with-deps.jar
@@ -111,13 +106,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout parent Planetiler repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: onthegomap/planetiler
           ref: main
           path: planetiler
       - name: Checkout this PR planetiler-openmaptiles repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: planetiler-openmaptiles
       - name: Move planetiler-openmaptiles into planetiler
@@ -125,9 +120,9 @@ jobs:
       - name: Cache data/sources
         uses: ./planetiler/planetiler-openmaptiles/.github/cache-sources-action
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
           cache: 'maven'
       - name: Build and test this branch

@@ -57,8 +57,10 @@ import com.onthegomap.planetiler.util.Translations;
 import com.onthegomap.planetiler.util.ZoomFunction;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import org.openmaptiles.OpenMapTilesProfile;
 import org.openmaptiles.generated.OpenMapTilesSchema;
@@ -109,16 +111,8 @@ public class TransportationName implements
     .put(7, 20_000)
     .put(8, 14_000)
     .put(9, 8_000)
-    .put(10, 8_000)
-    .put(11, 8_000);
-  private static final List<String> CONCURRENT_ROUTE_KEYS = List.of(
-    Fields.ROUTE_1,
-    Fields.ROUTE_2,
-    Fields.ROUTE_3,
-    Fields.ROUTE_4,
-    Fields.ROUTE_5,
-    Fields.ROUTE_6
-  );
+    .put(10, 4_000)
+    .put(11, 2_000);
   private final boolean brunnel;
   private final boolean sizeForShield;
   private final boolean limitMerge;
@@ -127,9 +121,11 @@ public class TransportationName implements
   private Transportation transportation;
   private final LongByteMap motorwayJunctionHighwayClasses = Hppc.newLongByteHashMap();
   private final LongSet motorwayJunctionNodes = new LongHashSet();
+  private final Translations translations;
 
   public TransportationName(Translations translations, PlanetilerConfig config, Stats stats) {
     this.config = config;
+    this.translations = translations;
     this.brunnel = config.arguments().getBoolean(
       "transportation_name_brunnel",
       "transportation_name layer: set to false to omit brunnel and help merge long highways",
@@ -201,7 +197,7 @@ public class TransportationName implements
 
         features.point(LAYER_NAME)
           .setBufferPixels(BUFFER_SIZE)
-          .putAttrs(OmtLanguageUtils.getNamesWithoutTranslations(element.source().tags()))
+          .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
           .setAttr(Fields.REF, ref)
           .setAttr(Fields.REF_LENGTH, ref != null ? ref.length() : null)
           .setAttr(Fields.CLASS, highwayClass(cls.highwayValue, null, null, null))
@@ -261,7 +257,7 @@ public class TransportationName implements
       .setBufferPixels(BUFFER_SIZE)
       .setBufferPixelOverrides(MIN_LENGTH)
       // TODO abbreviate road names - can't port osml10n because it is AGPL
-      .putAttrs(OmtLanguageUtils.getNamesWithoutTranslations(element.source().tags()))
+      .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
       .setAttr(Fields.REF, ref)
       .setAttr(Fields.REF_LENGTH, ref != null ? ref.length() : null)
       .setAttr(Fields.NETWORK,
@@ -273,15 +269,19 @@ public class TransportationName implements
       .setSortKey(element.zOrder())
       .setMinZoom(minzoom);
 
-    // populate route_1, route_2, ... tags
-    for (int i = 0; i < Math.min(CONCURRENT_ROUTE_KEYS.size(), relations.size()); i++) {
-      Transportation.RouteRelation routeRelation = relations.get(i);
-      feature.setAttr(CONCURRENT_ROUTE_KEYS.get(i), routeRelation.network() == null ? null :
-        routeRelation.network() + "=" + coalesce(routeRelation.ref(), ""));
+    // populate route_1, route_2, ... route_n tags and remove duplicates
+    Set<String> routes = new HashSet<>();
+    for (var route : relations) {
+      String routeString = route.network() + "=" + coalesce(route.ref(), "");
+      if (routes.add(routeString)) {
+        feature.setAttr("route_" + routes.size(), routeString);
+      }
     }
 
     if (brunnel) {
-      feature.setAttr(Fields.BRUNNEL, brunnel(element.isBridge(), element.isTunnel(), element.isFord()));
+      // from OMT: "Drop brunnel if length of way < 2% of tile width (less than 3 pixels)"
+      feature.setAttrWithMinSize(Fields.BRUNNEL, brunnel(element.isBridge(), element.isTunnel(), element.isFord()),
+        3, 4, 12);
     }
 
     /*
@@ -309,7 +309,7 @@ public class TransportationName implements
       features.line(LAYER_NAME)
         .setBufferPixels(BUFFER_SIZE)
         .setBufferPixelOverrides(MIN_LENGTH)
-        .putAttrs(OmtLanguageUtils.getNamesWithoutTranslations(element.source().tags()))
+        .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
         .setAttr(Fields.CLASS, "aerialway")
         .setAttr(Fields.SUBCLASS, element.aerialway())
         .setMinPixelSize(0)
@@ -324,7 +324,7 @@ public class TransportationName implements
       features.line(LAYER_NAME)
         .setBufferPixels(BUFFER_SIZE)
         .setBufferPixelOverrides(MIN_LENGTH)
-        .putAttrs(OmtLanguageUtils.getNamesWithoutTranslations(element.source().tags()))
+        .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
         .setAttr(Fields.CLASS, element.shipway())
         .setMinPixelSize(0)
         .setSortKey(element.zOrder())

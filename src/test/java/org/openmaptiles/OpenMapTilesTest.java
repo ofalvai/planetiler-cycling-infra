@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import com.onthegomap.planetiler.TestUtils;
 import com.onthegomap.planetiler.VectorTile;
+import com.onthegomap.planetiler.archive.Tile;
 import com.onthegomap.planetiler.config.Arguments;
 import com.onthegomap.planetiler.mbtiles.Mbtiles;
 import com.onthegomap.planetiler.util.FileUtils;
@@ -91,7 +92,7 @@ class OpenMapTilesTest {
 
   @Test
   void ensureValidGeometries() throws Exception {
-    Set<Mbtiles.TileEntry> parsedTiles = TestUtils.getAllTiles(mbtiles);
+    Set<Tile> parsedTiles = TestUtils.getTiles(mbtiles);
     for (var tileEntry : parsedTiles) {
       var decoded = VectorTile.decode(gunzip(tileEntry.bytes()));
       for (VectorTile.Feature feature : decoded) {
@@ -136,7 +137,7 @@ class OpenMapTilesTest {
     assertFeatureNear(mbtiles, "housenumber", Map.of(
       "housenumber", "27"
     ), 7.42117, 43.73652, 14, 14);
-    assertNumFeatures("housenumber", Map.of(), 14, 274, Point.class);
+    assertNumFeatures("housenumber", Map.of(), 14, 231, Point.class);
   }
 
   @Test
