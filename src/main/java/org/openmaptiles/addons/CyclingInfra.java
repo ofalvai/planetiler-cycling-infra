@@ -57,7 +57,7 @@ public class CyclingInfra implements
     }
 
     boolean isCycleway = feature.hasTag("highway", "cycleway");
-    boolean isDesignated = feature.hasTag("bicycle", "designated");
+    boolean isDesignated = feature.hasTag("bicycle", "designated") && !feature.hasTag("highway", "rest_area");
     boolean isTrack = feature.hasTag("cycleway", "track") ||
         feature.hasTag("cycleway:left", "track") ||
         feature.hasTag("cycleway:right", "track") ||
@@ -65,6 +65,10 @@ public class CyclingInfra implements
     if (isCycleway || isDesignated || isTrack) {
       features.line(LAYER_NAME)
           .setAttr("class", "cycleway")
+          .setAttr("lit", feature.getTag("lit"))
+          .setAttr("surface", surfaceOf(feature))
+          .setAttr("smoothness", feature.getTag("smoothness"))
+          // TODO: set attr for foot access/segregation
           .setMinPixelSize(0); // merge short lines in postProcess()
       return; // highest priority feature, we don't care if tags satisfy other criteria
     }
@@ -76,6 +80,10 @@ public class CyclingInfra implements
     if (isLane) {
       features.line(LAYER_NAME)
           .setAttr("class", "cycle_lane")
+          .setAttr("lit", feature.getTag("lit"))
+          .setAttr("surface", surfaceOf(feature))
+          .setAttr("smoothness", feature.getTag("smoothness"))
+          .setAttr("highway", feature.getTag("highway"))
           .setMinPixelSize(0); // merge short lines in postProcess()
       return;
     }
@@ -87,6 +95,10 @@ public class CyclingInfra implements
     ) {
       features.line(LAYER_NAME)
           .setAttr("class", "cycle_shared")
+          .setAttr("lit", feature.getTag("lit"))
+          .setAttr("surface", surfaceOf(feature))
+          .setAttr("smoothness", feature.getTag("smoothness"))
+          .setAttr("highway", feature.getTag("highway"))
           .setMinPixelSize(0);
       return;
     }
@@ -94,7 +106,10 @@ public class CyclingInfra implements
     if (feature.hasTag("cycleway", "opposite") || feature.hasTag("oneway:bicycle", "no")) {
       features.line(LAYER_NAME)
           .setAttr("class", "cycle_no_infra")
-          .setAttr("subclass", "two_way")
+          .setAttr("subclass", "two_way_for_bicycle")
+          .setAttr("lit", feature.getTag("lit"))
+          .setAttr("surface", surfaceOf(feature))
+          .setAttr("smoothness", feature.getTag("smoothness"))
           .setMinPixelSize(0); // merge short lines in postProcess()
       return;
     }
@@ -108,6 +123,10 @@ public class CyclingInfra implements
       features.line(LAYER_NAME)
           .setAttr("class", "cycle_no_infra")
           .setAttr("subclass", "cycle_route")
+          .setAttr("lit", feature.getTag("lit"))
+          .setAttr("surface", surfaceOf(feature))
+          .setAttr("smoothness", feature.getTag("smoothness"))
+          .setAttr("highway", feature.getTag("highway"))
           .setMinPixelSize(0);
     }
   }
@@ -121,4 +140,9 @@ public class CyclingInfra implements
         true
     );
   }
+
+  private Object surfaceOf(SourceFeature feature) {
+    return feature.getTag("cycleway:surface", feature.getTag("surface"));
+  }
+
 }

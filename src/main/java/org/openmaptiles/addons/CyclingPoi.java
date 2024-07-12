@@ -25,7 +25,22 @@ public class CyclingPoi implements Layer, OpenMapTilesProfile.OsmAllProcessor {
     if (feature.hasTag("amenity", "bicycle_repair_station")) {
       features.centroidIfConvex(LAYER_NAME)
           .setMinZoom(13)
-          .setAttr("class", "bicycle_repair_station");
+          .setAttr("class", "bicycle_repair_station")
+          .setAttr("pump", feature.getTag("service:bicycle:pump"))
+          .setAttr("chain_tool", feature.getTag("service:bicycle:chain_tool"))
+          .setAttr("tools", feature.getTag("service:bicycle:tools"))
+          .setAttr("stand", feature.getTag("service:bicycle:stand"))
+          .setAttr("operator", feature.getTag("operator"))
+          .setAttr("brand", feature.getTag("brand"))
+          .setAttr("opening_hours", feature.getTag("opening_hours"));
+    }
+
+    if (feature.hasTag("amenity", "bicycle_rental") && feature.hasTag("network", "bubi", "BuBi")) {
+      features.centroidIfConvex(LAYER_NAME)
+          .setMinZoom(13)
+          .setAttr("class", "bicycle_rental")
+          .setAttr("network", "bubi")
+          .setAttr("capacity", feature.getTag("capacity"));
     }
   }
 }

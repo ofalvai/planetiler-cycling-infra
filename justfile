@@ -3,13 +3,13 @@ default:
 
 jar_path := "target/*with-deps.jar"
 
-clean-build-europe: build-planetiler
+clean-build AREA: build-planetiler
     java -Xmx20g \
         `# return unused heap memory to the OS` \
         -XX:MaxHeapFreeRatio=40 \
-        -jar {{jar_path}} --force --download \
-        --area=europe \
-        --output=data/planetiler-europe-cycling.mbtiles \
+        -jar {{jar_path}} --force \
+        --area={{AREA}} \
+        --output=data/planetiler-{{AREA}}-cycling.mbtiles \
         `# Store temporary node locations at fixed positions in a memory-mapped file` \
         --nodemap-type=array --storage=mmap \
         --config=config-cycling.properties
