@@ -153,8 +153,8 @@ public class Tables {
 
     /** Imposm3 "mapping" to filter OSM elements that should appear in this "table". */
     public static final Expression MAPPING = and(or(
-      matchAny("landuse", "allotments", "farm", "farmland", "orchard", "plant_nursery", "vineyard", "grass",
-        "grassland", "meadow", "forest", "village_green", "recreation_ground"),
+      matchAny("landuse", "allotments", "farm", "farmland", "orchard", "flowerbed", "plant_nursery", "vineyard",
+        "grass", "grassland", "meadow", "forest", "village_green", "recreation_ground"),
       matchAny("natural", "wood", "wetland", "fell", "grassland", "heath", "scrub", "shrubbery", "tundra", "glacier",
         "bare_rock", "scree", "beach", "sand", "dune"),
       matchAny("leisure", "park", "garden", "golf_course"), matchAny("wetland", "bog", "swamp", "wet_meadow", "marsh",

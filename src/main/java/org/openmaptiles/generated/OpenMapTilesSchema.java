@@ -335,6 +335,7 @@ public class OpenMapTilesSchema {
        * <li>"farm"
        * <li>"farmland"
        * <li>"fell"
+       * <li>"flowerbed"
        * <li>"forest"
        * <li>"garden"
        * <li>"glacier"
@@ -387,6 +388,7 @@ public class OpenMapTilesSchema {
       public static final String SUBCLASS_FARM = "farm";
       public static final String SUBCLASS_FARMLAND = "farmland";
       public static final String SUBCLASS_FELL = "fell";
+      public static final String SUBCLASS_FLOWERBED = "flowerbed";
       public static final String SUBCLASS_FOREST = "forest";
       public static final String SUBCLASS_GARDEN = "garden";
       public static final String SUBCLASS_GLACIER = "glacier";
@@ -416,9 +418,9 @@ public class OpenMapTilesSchema {
       public static final String SUBCLASS_WOOD = "wood";
       public static final Set<String> SUBCLASS_VALUES =
         Set.of("allotments", "bare_rock", "beach", "bog", "dune", "scrub", "shrubbery", "farm", "farmland", "fell",
-          "forest", "garden", "glacier", "grass", "grassland", "golf_course", "heath", "mangrove", "marsh", "meadow",
-          "orchard", "park", "plant_nursery", "recreation_ground", "reedbed", "saltern", "saltmarsh", "sand", "scree",
-          "swamp", "tidalflat", "tundra", "village_green", "vineyard", "wet_meadow", "wetland", "wood");
+          "flowerbed", "forest", "garden", "glacier", "grass", "grassland", "golf_course", "heath", "mangrove", "marsh",
+          "meadow", "orchard", "park", "plant_nursery", "recreation_ground", "reedbed", "saltern", "saltmarsh", "sand",
+          "scree", "swamp", "tidalflat", "tundra", "village_green", "vineyard", "wet_meadow", "wetland", "wood");
     }
     /** Complex mappings to generate attribute values from OSM element tags in the landcover layer. */
     final class FieldMappings {
@@ -431,8 +433,8 @@ public class OpenMapTilesSchema {
             MultiExpression.entry("wood", matchAny("subclass", "wood", "forest")),
             MultiExpression.entry("rock", matchAny("subclass", "bare_rock", "scree")),
             MultiExpression.entry("grass",
-              matchAny("subclass", "fell", "grassland", "heath", "scrub", "shrubbery", "tundra", "grass", "meadow",
-                "allotments", "park", "village_green", "recreation_ground", "garden", "golf_course")),
+              matchAny("subclass", "fell", "flowerbed", "grassland", "heath", "scrub", "shrubbery", "tundra", "grass",
+                "meadow", "allotments", "park", "village_green", "recreation_ground", "garden", "golf_course")),
             MultiExpression.entry("wetland",
               matchAny("subclass", "wetland", "bog", "swamp", "wet_meadow", "marsh", "reedbed", "saltern", "tidalflat",
                 "saltmarsh", "mangrove")),
